@@ -1,0 +1,15 @@
+torch
+torchvision
+glob2
+numpy
+tqdm
+pandas
+pysaliency
+pybase64
+matplotlib
+pycocotools
+opencv-python
+scikit-image
+scipy
+git+https://github.com/facebookresearch/segment-anything.git
+git+https://github.com/matthias-k/DeepGaze.git
