@@ -1,0 +1,11 @@
+# Config file
+# Please read the README.md file for an introduction to this config file
+
+# If you have Datasets in a other location you can specify it here. you can use * if you want to check multiple folders for images
+[Paths]
+pathToImages = "Datasets/images/" # Images from COCO Search 18 Dataset that are used to create our MSCO Dataset
+pathToGroundTruth = "Datasets/MSCO.json" # Used in evaluation if you use your own images you will have to adapt our evaluation to fit your data
+
+[DeepGaze]
+amountOfFixations = 10  # Amount of fixations per viewpath
+amountOfViewPaths = 3   # DeepGaze generates 3 viewpaths with <amountOfFixations> fixations each
