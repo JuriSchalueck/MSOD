@@ -1,13 +1,13 @@
 # Multiple Salient Object Detection with DeepGaze III and SAM
 
-This repository contains the UPDATED code to my Bacheors Thesis in which I presentet MSOD which combines the DeepGaze III model with the foundational SAM model to predict objects and their relative salience in a image.
+This repository contains the UPDATED code to my Bacheor's Thesis in which I presented MSOD. MSOD combines the DeepGaze III model with the foundational SAM model to predict objects and their relative salience in an image.
 
 ## Contents
 
 The repository contains multiple files:
 - This README.md file
-- A requirements.txt file with the necascerry python dependencies
-- A python script that combines the COCO dataset with the COCO-FreeView dataset to create our MSCO (Multiple Salient COCO Objects) dataset named CreateMSCODataset.py
+- A requirements.txt file with the necessary python dependencies
+- A python script that combines the COCO Dataset with the COCO-FreeView Dataset to create our MSCO (Multiple Salient COCO Objects) Dataset named CreateMSCODataset.py
 - A python script for the Deepgaze part of our proposed model DeepGaze.py
 - A python script for the SAM and Ranking part of our model SAM_and_Ranking.py
 - Two evaluation scripts, one for our MSCO Dataset and one for the ASSR Dataset
@@ -16,13 +16,13 @@ The repository contains multiple files:
 
 ## Additional requirements
 
-To get you going you will need some more things:
+To get you going, you will need some more things:
 
-- The ViT-H SAM model which you can download from https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints this needs to be in the same directory as the python file
+- The ViT-H SAM model which you can download from https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints This needs to be in the same directory as the python file.
 
 ### MSCO Dataset
 
-Unfortunatly we can not provide a download to our MSCO Dataset due to the complicated licensing of COCO images. If you want to use our MSCO (Multiple Salient COCO Objects) Dataset you can recreate it yourself. For that you will need:
+Unfortunately we can not provide a download to our MSCO Dataset due to the complicated licensing of COCO images. If you want to use our MSCO (Multiple Salient COCO Objects) Dataset you can recreate it yourself. For that you will need:
 - The MSCOCO 2017 Train and val images and annotations https://cocodataset.org/#download
 - The COCOFreeView Data https://sites.google.com/view/cocosearch/coco-freeview
 - And The COCO-Search18 Images both TP and AP https://sites.google.com/view/cocosearch/
@@ -39,22 +39,22 @@ then you can delete the remaining files with
 ```
 rm -r COCOSearch18-images-TA COCOSearch18-images-TP COCOSearch18-images-TA.zip COCOSearch18-images-TP.zip
 ```
-and finaly unzip the annotations_trainval2017.zip and you are done.
+and finally unzip the annotations_trainval2017.zip and you are done.
 
 ### ASSR Dataset
 
-If you want to do something with the ASSR Dataset you can Download it from https://github.com/SirisAvishek/Attention_Shift_Ranks/tree/master/Attention_Shift_Saliency_Rank
+If you want to do something with the ASSR Dataset, you can download it from https://github.com/SirisAvishek/Attention_Shift_Ranks/tree/master/Attention_Shift_Saliency_Rank
 
 ## Recommended Setup
 
 
-**Most of the actions based on the file system are based on relative paths**
+**Most file system actions are based on relative paths!**
 
- Navigate to MSCO folder and setup venv
+Navigate to MSCO folder and setup venv
 
 ```
 cd path/to/MSCO
-pytohn3 -m venv .venv
+python3 -m venv .venv
 ```
 activate the virtual environment and install dependencies
 ```
@@ -63,4 +63,4 @@ pip install -r /path/to/requirements.txt
 ```
 
 ## The Example_config file
-You can copy the Example_config.toml file and rename it config.toml. here you can specify where your images are stored, where Datasets are stored and set the parameters you want MSOD to run with. Each option is explained by the comment next to it.
+You can copy the Example_config.toml file and rename it config.toml. Here you can specify where your images are stored, where datasets are stored, and set the parameters you want MSOD to run with. Each option is explained by the comment next to it.
