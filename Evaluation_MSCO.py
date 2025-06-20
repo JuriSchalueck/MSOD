@@ -1,23 +1,23 @@
-import cv2
 import json
 import math
 import glob
+import tqdm
 import base64
+import tomllib
 import numpy as np
-from tqdm import tqdm
 from SASOR import evalu
 from pycocotools import mask as maskUtils
 from SOR import sor as sor_eval
 
+with open("config.toml", "rb") as file:
+    toml_data: dict = tomllib.load(file)
 
-amountOfChunks = 32  # WARNING! Since for each image the masks are loaded into memory, evaluation uses a lot of memory. Therefore, the evaluation process can be split into chunks to reduce memory usage.
-amountOfPaths = 3 # Amount of fixation paths generated per image
-amountOfFixations = 10 # Amount of fixations generated per fixationpath
-
-groundTruths = json.load(open("Datasets/MSCO.json"))
+amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
+amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
+groundTruths = json.load(open(toml_data['Paths']['pathToGroundTruth']))
+image_paths = glob.glob(toml_data['Paths']['pathToImages'])
 results = json.load(open("Datasets/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
-
-image_paths = glob.glob("Datasets/MSCOImages/*.jpg")    # list of strings to each image in the dataset (use glob), all images need to be the same size
+imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
 def SASOR(input_data, iou_threshold=.5, name="test"):
     return evalu(input_data, iou_threshold, name)
@@ -77,7 +77,7 @@ def MAE(input_data):
         
 
     average_errors = []
-    for img_data in tqdm(input_data):
+    for img_data in tqdm.tqdm(input_data):
         average_errors.append(AE(img_data))
 
     return (np.sum(average_errors)) / len(input_data)
@@ -87,13 +87,14 @@ sasor_scores = []
 sor_scores = []
 mae_scores = []
 
-chunks = np.linspace(0, len(image_paths), 32 ,dtype=int)
+numberOfChunks = int(len(image_paths) / imagesPerChunk) + 1
+chunks = np.linspace(0, len(image_paths), numberOfChunks ,dtype=int)
 path_chunks = [image_paths[chunks[i]:chunks[i+1]] for i in range(len(chunks)-1)]
 
-for z, path_chunk in tqdm(enumerate(path_chunks)):
+for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
     print("Chunk: ", z)
     input_data = []
-    for x, pth in tqdm(enumerate(path_chunk)):  # Split data into blocks because memory is limited (200 images need roughly 32GB (very high estimate))
+    for x, pth in tqdm.tqdm(enumerate(path_chunk))
         img_data = {}
         gt_masks = []
         segmaps = np.array([])
@@ -172,5 +173,7 @@ print("final SOR Score: ", np.mean(sor_scores))
 print("final MAE Score: ", np.mean(mae_scores))
 
 #save Evaluation results to file
-with open("Eval_results_MSCO_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Datasets/Results/MSCOResults/Eval_results_MSCO_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump({"SASOR": sasor_scores, "SOR": sor_scores, "MAE": mae_scores, "combined_SASOR": mean_sasor,"combined_SOR": mean_sor, "combined_MAE": mean_mae}, file)
+
+print("Results succesfully saved in Datasets/Results/MSCOResults/ as Eval_results_MSCO_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json")

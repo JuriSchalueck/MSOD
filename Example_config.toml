@@ -3,9 +3,15 @@
 
 # If you have Datasets in a other location you can specify it here. you can use * if you want to check multiple folders for images
 [Paths]
-pathToImages = "Datasets/images/" # Images from COCO Search 18 Dataset that are used to create our MSCO Dataset
+pathToImages = "Datasets/MSCOImages/*.jpg" # Path to all images that are evaluated use * like with glob
 pathToGroundTruth = "Datasets/MSCO.json" # Used in evaluation if you use your own images you will have to adapt our evaluation to fit your data
 
 [DeepGaze]
 amountOfFixations = 10  # Amount of fixations per viewpath
 amountOfViewPaths = 3   # DeepGaze generates 3 viewpaths with <amountOfFixations> fixations each
+
+[SAM]
+maxAmountOfMasks = 0 # 0 Means no limit. The Maximal amount of masks that same gives for one image. if more masks were found we discard the masks with the lowest saliency rankings.
+
+[Evaluation]
+imagesPerChunk = 256 # In Evaluation images and masks are loaded and stored in memory depending on the amount of memory in your system you can adapt this number

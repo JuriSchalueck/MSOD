@@ -1,17 +1,20 @@
 import json
-import torch
 import glob
+import torch
+import tomllib
 import numpy as np
 from tqdm import tqdm
 import deepgaze_pytorch
 import matplotlib.pyplot as plt
 from pysaliency.models import sample_from_logdensity
 
+# Load config
+with open('config.toml', 'rb') as file:
+    toml_data: dict = tomllib.load(file)
 
-# Variables to be set by user 
-imagePaths = glob.glob("example/path/to/Dataset/*.jpg")    # list of strings to each image in the dataset (use glob), all images need to be the same size
-amountOfPaths = 1                                           # Amount of fixation paths generated per image
-amountOfFixations = 6                                       # Amount of fixations generated per fixationpath
+imagePaths = glob.glob(toml_data['Paths']['pathToImages'])
+amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
+amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
 
 # DeepGaze Model initialization
 device = 'cuda' # use GPU
@@ -62,7 +65,7 @@ for imagePath in tqdm(imagePaths):
     deepGaze_results.append({"file_name": imagePath.split("/")[-1], "fixationPaths": fixationPaths})
 
 # Save to file
-with open("DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file: #TODO number of fixations into config
+with open("Datasets/DeepGaze/DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
     json.dump(deepGaze_results, file)
 
-print("Success, DeepGaze results saved as DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json")
+print("Success, DeepGaze results saved as DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json in Datasets/DeepGaze/")

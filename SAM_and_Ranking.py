@@ -1,20 +1,28 @@
 import json
 import glob
 import base64
+import tomllib
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import pycocotools.mask as maskUtils
 from segment_anything import sam_model_registry, SamPredictor
 
+#Load config
+with open("config.toml", "rb") as file:
+    toml_data: dict = tomllib.load(file)
 
-# Variables to be set by user 
-imagePaths = glob.glob("example/path/to/Dataset/*.jpg")    # list of strings to each image in the dataset (use glob), all images need to be the same size
-amountOfPaths = 1                                           # Amount of fixation paths per image previously computed by DeepGaze
-amountOfFixations = 6                                       # Amount of fixations per fixationpath previously computed by DeepGaze
-max_amount_of_masks = 0                                     # Maximum amount of returned ranked masks, 0 means no limit
+imagePaths = glob.glob(toml_data['Paths']['pathToImages'])
+amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths'] 
+amountOfFixations = toml_data['DeepGaze']['amountOfFixations']  
+max_amount_of_masks = toml_data['SAM']['maxAmountOfMasks']
 
-deepGaze_results = json.load(open("DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
+deepGaze_results = json.load(open("Datasets/DeepGaze/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
+
+device = 'cuda' # use GPU
+sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
+sam.to(device=device)
+predictor = SamPredictor(sam)
 
 
 def IoU(mask1, mask2):
@@ -32,15 +40,7 @@ def combinedLength(list):
     return length
 
 
-device = 'cuda' # use GPU
-sam_checkpoint = "sam_vit_h_4b8939.pth" # TODO: !!!file is not in repo!!! put in readme as requirement
-model_type = "vit_h"
-sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-sam.to(device=device)
-predictor = SamPredictor(sam)
-
 results = []
-
 for imagePath in tqdm(imagePaths):
     image = plt.imread(imagePath)
 
@@ -90,7 +90,6 @@ for imagePath in tqdm(imagePaths):
         scores_list.append(scores)
         associated_fixations_list.append(associated_fixations)
                 
-    
     while True:
         combined_length = combinedLength(masks_list)
         for x, masks in enumerate(masks_list):
@@ -206,7 +205,7 @@ for imagePath in tqdm(imagePaths):
     
      
 # Save dict to file
-with open("SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Datasets/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump(results, file)
 
-print("Success, results saved as SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")
+print("Success, results saved as SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json in Datasets/SAM/")
