@@ -12,6 +12,7 @@ from pysaliency.models import sample_from_logdensity
 with open('config.toml', 'rb') as file:
     toml_data: dict = tomllib.load(file)
 
+Dataset = toml_data['Dataset']
 imagePaths = glob.glob(toml_data['Paths']['pathToImages'])
 amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
@@ -65,7 +66,7 @@ for imagePath in tqdm(imagePaths):
     deepGaze_results.append({"file_name": imagePath.split("/")[-1], "fixationPaths": fixationPaths})
 
 # Save to file
-with open("Datasets/DeepGaze/DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
+with open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
     json.dump(deepGaze_results, file)
 
-print("Success, DeepGaze results saved as DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json in Datasets/DeepGaze/")
+print("Success, DeepGaze results saved as DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json in Resources/DeepGaze/" + str(Dataset) + "/")

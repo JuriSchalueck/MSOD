@@ -6,17 +6,18 @@ import base64
 import tomllib
 import numpy as np
 from SASOR import evalu
-from pycocotools import mask as maskUtils
 from SOR import sor as sor_eval
+from pycocotools import mask as maskUtils
 
 with open("config.toml", "rb") as file:
     toml_data: dict = tomllib.load(file)
 
+Dataset = toml_data['Dataset']
 amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
-groundTruths = json.load(open(toml_data['Paths']['pathToGroundTruth']))
+groundTruths = json.load(open(toml_data['Paths']['pathToMSCO']))
 image_paths = glob.glob(toml_data['Paths']['pathToImages'])
-results = json.load(open("Datasets/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
+results = json.load(open("Resources/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
 imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
 def SASOR(input_data, iou_threshold=.5, name="test"):
@@ -94,7 +95,7 @@ path_chunks = [image_paths[chunks[i]:chunks[i+1]] for i in range(len(chunks)-1)]
 for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
     print("Chunk: ", z)
     input_data = []
-    for x, pth in tqdm.tqdm(enumerate(path_chunk))
+    for x, pth in tqdm.tqdm(enumerate(path_chunk)):
         img_data = {}
         gt_masks = []
         segmaps = np.array([])
@@ -173,7 +174,7 @@ print("final SOR Score: ", np.mean(sor_scores))
 print("final MAE Score: ", np.mean(mae_scores))
 
 #save Evaluation results to file
-with open("Datasets/Results/MSCOResults/Eval_results_MSCO_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Resources/Results/" + str(Dataset) + "/Eval_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump({"SASOR": sasor_scores, "SOR": sor_scores, "MAE": mae_scores, "combined_SASOR": mean_sasor,"combined_SOR": mean_sor, "combined_MAE": mean_mae}, file)
 
-print("Results succesfully saved in Datasets/Results/MSCOResults/ as Eval_results_MSCO_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json")
+print("Results succesfully saved in Resources/Results/" + str(Dataset) + "/ as Eval_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json")

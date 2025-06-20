@@ -12,12 +12,13 @@ from segment_anything import sam_model_registry, SamPredictor
 with open("config.toml", "rb") as file:
     toml_data: dict = tomllib.load(file)
 
+Dataset = toml_data['Dataset']
 imagePaths = glob.glob(toml_data['Paths']['pathToImages'])
 amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths'] 
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']  
 max_amount_of_masks = toml_data['SAM']['maxAmountOfMasks']
 
-deepGaze_results = json.load(open("Datasets/DeepGaze/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
+deepGaze_results = json.load(open("Resources/DeepGaze/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
 
 device = 'cuda' # use GPU
 sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
@@ -205,7 +206,7 @@ for imagePath in tqdm(imagePaths):
     
      
 # Save dict to file
-with open("Datasets/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump(results, file)
 
-print("Success, results saved as SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json in Datasets/SAM/")
+print("Success, results saved as SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json in Resources/SAM/" + str(Dataset) + "/")

@@ -6,10 +6,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
 
-cocoSearch18ImagePaths = glob.glob("Datasets/images/*/*.jpg")
-cocoAnnTrain  = COCO("Datasets/annotations_trainval2017/annotations/instances_train2017.json")
-cocoAnnVal = COCO("Datasets/annotations_trainval2017/annotations/instances_val2017.json")
-cocoFreeView = json.load(open("Datasets/COCOFreeView_fixations_trainval.json"))
+cocoSearch18ImagePaths = glob.glob("Resources/images/*/*.jpg")
+cocoAnnTrain  = COCO("Resources/annotations_trainval2017/annotations/instances_train2017.json")
+cocoAnnVal = COCO("Resources/annotations_trainval2017/annotations/instances_val2017.json")
+cocoFreeView = json.load(open("Resources/COCOFreeView_fixations_trainval.json"))
 dataset = []
 
 
@@ -154,16 +154,16 @@ for pth in tqdm.tqdm(reducedImagePaths2):
     dataset.append({'file_name' : imgName, 'img_id' : img_id, 'img_width' : img_width, 'img_height' : img_height, 'ranking' : final_ranking.tolist(), 'annotations' : anns})        # TODO: remove 'annotations' from dataset they can later be matched with the image id/ image name
     reducedImagePaths3.append(pth)
 
-with open("Datasets/MSCO.json", "w") as file:
+with open("Resources/MSCO.json", "w") as file:
     json.dump(dataset, file)
 
 for pth in tqdm.tqdm(reducedImagePaths3):
-    img = plt.imread(glob.glob("Datasets/MSCOCOOriginalImages/*/" + pth.split("/")[-1])[0])
+    img = plt.imread(glob.glob("Resources/MSCOCOOriginalImages/*/" + pth.split("/")[-1])[0])
 
     # if image is single channel (grayscale image) change it to rbg. if not roblem with creating tensors later with DeepGaze and SAM
     if len(img.shape) == 2:
         img = np.stack(([img] * 3), 2)
 
-    plt.imsave("Datasets/MSCOImages/" + (pth.split("/")[-1]), img)
+    plt.imsave("Resources/MSCOImages/" + (pth.split("/")[-1]), img)
 
-print("FINISHED! Images saved at Datasets/MSCOImages/ and mask/rankings saved as MSCO.json in Datasets/")
+print("FINISHED! Images saved at Resources/MSCOImages/ and mask/rankings saved as MSCO.json in Resources/")
