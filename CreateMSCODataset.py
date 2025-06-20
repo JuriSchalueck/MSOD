@@ -3,6 +3,7 @@ import glob
 import tqdm
 import numpy as np
 from PIL import Image
+from pathlib import Path
 import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
 
@@ -154,9 +155,11 @@ for pth in tqdm.tqdm(reducedImagePaths2):
     dataset.append({'file_name' : imgName, 'img_id' : img_id, 'img_width' : img_width, 'img_height' : img_height, 'ranking' : final_ranking.tolist(), 'annotations' : anns})        # TODO: remove 'annotations' from dataset they can later be matched with the image id/ image name
     reducedImagePaths3.append(pth)
 
+Path("Resources").mkdir(parents=True, exist_ok=True)
 with open("Resources/MSCO.json", "w") as file:
     json.dump(dataset, file)
 
+Path("Resources/MSCOImages").mkdir(parents=True, exist_ok=True)
 for pth in tqdm.tqdm(reducedImagePaths3):
     img = plt.imread(glob.glob("Resources/MSCOCOOriginalImages/*/" + pth.split("/")[-1])[0])
 

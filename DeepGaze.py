@@ -5,6 +5,7 @@ import tomllib
 import numpy as np
 from tqdm import tqdm
 import deepgaze_pytorch
+from pathlib import Path
 import matplotlib.pyplot as plt
 from pysaliency.models import sample_from_logdensity
 
@@ -66,6 +67,7 @@ for imagePath in tqdm(imagePaths):
     deepGaze_results.append({"file_name": imagePath.split("/")[-1], "fixationPaths": fixationPaths})
 
 # Save to file
+Path("Resources/DeepGaze/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
 with open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
     json.dump(deepGaze_results, file)
 

@@ -6,6 +6,7 @@ import base64
 import tomllib
 import numpy as np
 from SASOR import evalu
+from pathlib import Path
 from SOR import sor as sor_eval
 from pycocotools import mask as maskUtils
 
@@ -174,6 +175,7 @@ print("final SOR Score: ", np.mean(sor_scores))
 print("final MAE Score: ", np.mean(mae_scores))
 
 #save Evaluation results to file
+Path("Resources/Results/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
 with open("Resources/Results/" + str(Dataset) + "/Eval_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump({"SASOR": sasor_scores, "SOR": sor_scores, "MAE": mae_scores, "combined_SASOR": mean_sasor,"combined_SOR": mean_sor, "combined_MAE": mean_mae}, file)
 

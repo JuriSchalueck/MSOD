@@ -4,6 +4,7 @@ import base64
 import tomllib
 import numpy as np
 from tqdm import tqdm
+from pathlib import Path
 import matplotlib.pyplot as plt
 import pycocotools.mask as maskUtils
 from segment_anything import sam_model_registry, SamPredictor
@@ -206,6 +207,7 @@ for imagePath in tqdm(imagePaths):
     
      
 # Save dict to file
+Path("Resources/SAM/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
 with open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump(results, file)
 
