@@ -1,32 +1,47 @@
-import cv2
 import json
 import glob
+import tqdm
 import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
-from tqdm import tqdm
 
-# Paths to Datasets
-pthToCOCO18Images = "../COCOSearch18"
-pthToCOCOAnnTrain = "../Datasets/annotations/instances_train2017.json"
-pthToCOCOAnnVal = "../Datasets/annotations/instances_val2017.json"
-
-
-imagePaths = glob.glob(pthToCOCO18Images + "/*/*/*.jpg")
-cocoAnnTrain  = COCO(pthToCOCOAnnTrain)
-cocoAnnVal = COCO(pthToCOCOAnnVal)
-cocoFreeView = json.load(open("../Datasets/COCOFreeView_fixations_trainval.json"))
-
+cocoSearch18ImagePaths = glob.glob("Datasets/images/*/*.jpg")
+cocoAnnTrain  = COCO("Datasets/annotations_trainval2017/annotations/instances_train2017.json")
+cocoAnnVal = COCO("Datasets/annotations_trainval2017/annotations/instances_val2017.json")
+cocoFreeView = json.load(open("Datasets/COCOFreeView_fixations_trainval.json"))
 dataset = []
+
+
+def resize_and_pad_image(img, target_width=1680, target_height=1050):
+    img = Image.fromarray(img)
+    original_width, original_height = img.size
+    target_aspect_ratio = target_width / target_height
+    original_aspect_ratio = original_width / original_height
+
+    if original_aspect_ratio > target_aspect_ratio:
+        new_width = target_width
+        new_height = int(new_width / original_aspect_ratio)
+    else:
+        new_height = target_height
+        new_width = int(new_height * original_aspect_ratio)
+
+    resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+    new_image = Image.new('RGB', (target_width, target_height), (0, 0, 0))
+    x_offset = (target_width - new_width) // 2
+    y_offset = (target_height - new_height) // 2
+    new_image.paste(resized_img, (x_offset, y_offset))
+
+    return new_image
+
 
 # remove image duplicates
 reducedImagePaths = []
 helper = []
-
-for pth in imagePaths:
+for pth in cocoSearch18ImagePaths:
     if pth.split("/")[-1] not in helper:
         helper.append(pth.split("/")[-1])
         reducedImagePaths.append(pth)
-
 
 # remove images with missing masks or fixations
 reducedImagePaths2 = []
@@ -48,12 +63,9 @@ for pth in reducedImagePaths:
 with open("reducedPaths.json", "w") as file:
     json.dump(reducedImagePaths2, file)
 
-lenPaths = len(reducedImagePaths2)
-
-reducedImagePaths3 = []
-
 # iterate over remaining (4317) images
-for counter, pth in tqdm(enumerate(reducedImagePaths2)):
+reducedImagePaths3 = []
+for pth in tqdm.tqdm(reducedImagePaths2):
     imgName = pth.split("/")[-1]
     img_id = imgName.split(".")[0].lstrip("0")
 
@@ -70,39 +82,29 @@ for counter, pth in tqdm(enumerate(reducedImagePaths2)):
     except KeyError:
         anns = cocoAnnVal.loadAnns(ann_ids)
 
-
+    # TODO: Fix worng resizing here remember there are borders in COCOSearch 18 images so we have to recreate that for the masks
     binaryMasks = []
     for ann in anns: 
         try:
-            binaryMasks.append(cv2.resize(cocoAnnTrain.annToMask(ann), (1680, 1050)))
+            binaryMasks.append(np.array(resize_and_pad_image(cocoAnnTrain.annToMask(ann)))[:,:,2]) #TODO: find more elegant solution
         except KeyError:
-            binaryMasks.append(cv2.resize(cocoAnnVal.annToMask(ann), (1680, 1050)))
-
+            binaryMasks.append(np.array(resize_and_pad_image(cocoAnnVal.annToMask(ann)))[:,:,2])
 
     rankings = []
     for viewPth in viewPths:
-
         voting = [-1] * len(binaryMasks)
-
         fixations_x = viewPth['X']
         fixations_y = viewPth['Y']
-
         fixations = np.array([fixations_x, fixations_y]).reshape((len(fixations_x), 2))
 
         for i, mask in enumerate(binaryMasks):
-
-            for j, fixation in enumerate(fixations):
-                    
-                if(fixation[0] < 1050 and fixation[1] < 1680):
-
+            for j, fixation in enumerate(fixations): 
+                if(fixation[0] < 1050 and fixation[1] < 1680):                  #TODO dosent matter because there are no object masks on that border anymore
                     if mask[int(fixation[0]), int(fixation[1])] == 1:
-                        
                         if voting[i] == -1:
                             voting[i] = j
         
-
         norm_voting = np.array(voting) / np.max(voting)
-
         ranking = [0] * len(binaryMasks)
         for i in range(len(binaryMasks)):
             if norm_voting[i] >= 0:
@@ -132,7 +134,6 @@ for counter, pth in tqdm(enumerate(reducedImagePaths2)):
     img_width = 0
     img_height = 0
 
-
     for img in cocoAnnTrain.dataset['images']:
         if img['id'] == int(img_id):
             img_width = img['width']
@@ -151,14 +152,21 @@ for counter, pth in tqdm(enumerate(reducedImagePaths2)):
         continue
 
     dataset.append({'file_name' : imgName, 'img_id' : img_id, 'img_width' : img_width, 'img_height' : img_height, 'ranking' : final_ranking.tolist(), 'annotations' : anns})        # TODO: remove 'annotations' from dataset they can later be matched with the image id/ image name
-
     reducedImagePaths3.append(pth)
-
 
 with open("reducedPaths.json", "w") as file:
     json.dump(reducedImagePaths3, file)
 
-with open("MSCO.json", "w") as file:
+with open("Datasets/MSCO.json", "w") as file:
     json.dump(dataset, file)
 
-print("FINISHED! Dataset saved as MSCO.json")
+for pth in tqdm.tqdm(reducedImagePaths3):
+    img = plt.imread(glob.glob("Datasets/MSCOCOOriginalImages/*/" + pth.split("/")[-1])[0])
+
+    # if image is single channel (grayscale image) change it to rbg. if not roblem with creating tensors later with DeepGaze and SAM
+    if len(img.shape) == 2:
+        img = np.stack(([img] * 3), 2)
+
+    plt.imsave("Datasets/MSCOImages/" + (pth.split("/")[-1]), img)
+
+print("FINISHED! Images saved at Datasets/MSCOImages/ and mask/rankings saved as MSCO.json in Datasets/")
