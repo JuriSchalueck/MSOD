@@ -154,9 +154,6 @@ for pth in tqdm.tqdm(reducedImagePaths2):
     dataset.append({'file_name' : imgName, 'img_id' : img_id, 'img_width' : img_width, 'img_height' : img_height, 'ranking' : final_ranking.tolist(), 'annotations' : anns})        # TODO: remove 'annotations' from dataset they can later be matched with the image id/ image name
     reducedImagePaths3.append(pth)
 
-with open("reducedPaths.json", "w") as file:
-    json.dump(reducedImagePaths3, file)
-
 with open("Datasets/MSCO.json", "w") as file:
     json.dump(dataset, file)
 
