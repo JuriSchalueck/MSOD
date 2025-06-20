@@ -1,23 +1,27 @@
-import skimage.color as color
 import json
 import math
-import base64
-import numpy as np
-from tqdm import tqdm
-from SASOR import evalu
-from pycocotools import mask as maskUtils
 import glob
+import tqdm
+import base64
+import tomllib
+import numpy as np
+from SASOR import evalu
+import skimage.color as color
 from SOR import sor as sor_eval
 import matplotlib.pyplot as plt
+from pycocotools import mask as maskUtils
 
+with open("config.toml", "rb") as file:
+    toml_data: dict = tomllib.load(file)
 
-amountOfChunks = 32  # WARNING! Since for each image the masks are loaded into memory, evaluation uses a lot of memory. Therefore, the evaluation can be split into chunks to reduce memory usage.
-amountOfPaths = 5 # Amount of fixation paths generated per image
-amountOfFixations = 4 # Amount of fixations generated per fixationpath
+Dataset = toml_data['Dataset']
+amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
+amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
+pathToASSR = toml_data['Paths']['pathToASSR']
+paths = json.load(open(pathToASSR + "rank_order/test/COCO_val2014_*.json"))
+imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
-groundTruths = glob.glob('../Datasets/Siris_Dataset/ASSR/rank_order/test/COCO_val2014_*.json') #paths to rank_order images of masks
-results = json.load(open("SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
-
+results = json.load(open("resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))
 
 
 def SASOR(input_data, iou_threshold=.5, name="test"):
@@ -61,47 +65,43 @@ def SOR(input_data):
 
 
 # this could be calculated using rle encoded masks to save memory
-def MAE(input_data):                                                    # possible to improve compute time if necassary
-                                                                        # Normalize Error
+def MAE(input_data):
+
     def AE(img_data):
         gt_masks = img_data['gt_masks']
         segmaps = img_data['segmaps']
-        combined_gt_mask = np.zeros((480, 640), dtype=np.bool)                       # h x w
-        combined_segmap = np.zeros((480, 640), dtype=np.bool)
+        hight, width = gt_masks[0].shape
+        combined_gt_mask = np.zeros((hight, width), dtype=np.bool)
+        combined_segmap = np.zeros((hight, width), dtype=np.bool)
         for mask in gt_masks:
             np.logical_or(mask, combined_gt_mask, out=combined_gt_mask)
 
         for i in range(len(segmaps)):
             np.logical_or(segmaps[i], combined_segmap, out=combined_segmap)
 
-        result = np.sum(np.logical_xor(combined_gt_mask, combined_segmap))
+        result = np.sum(np.logical_xor(combined_gt_mask, combined_segmap)) / (hight * width)
         return result
         
 
     average_errors = []
-    for img_data in tqdm(input_data):
+    for img_data in tqdm.tqdm(input_data):
         average_errors.append(AE(img_data))
 
-    #print(average_errors   )
-    return (np.sum(average_errors) / (480*640)) / len(input_data)
+    return (np.sum(average_errors)) / len(input_data)
 
-
-    
-results = json.load(open("../Eval_preparation/ASSR/" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations/ASSR_SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) # TODO number of fixations into config
-
-paths = glob.glob('../Datasets/Siris_Dataset/ASSR/rank_order/test/COCO_val2014_*.json')
 
 sasor_scores = []
 sor_scores = []
 mae_scores = []
 
-chunks = np.linspace(0, len(paths), amountOfChunks ,dtype=int)
+numberOfChunks = int(len(paths) / imagesPerChunk) + 1
+chunks = np.linspace(0, len(paths), numberOfChunks ,dtype=int)
 path_chunks = [paths[chunks[i]:chunks[i+1]] for i in range(len(chunks)-1)]
 
-for z, path_chunk in tqdm(enumerate(path_chunks)):
+for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
     print("Chunk: ", z)
     input_data = []
-    for x, pth in tqdm(enumerate(path_chunk)):  # Split data into blocks because memory is limited (200 images need roughly 32GB (very high estimate))
+    for x, pth in tqdm.tqdm(enumerate(path_chunk)):
         img_data = {}
         gt_masks = []
         segmaps = np.array([])
@@ -112,7 +112,7 @@ for z, path_chunk in tqdm(enumerate(path_chunks)):
         gt = json.load(open(pth))
         # gt_masks
         imgID = gt['image_id']
-        original_masks = color.rgb2gray(plt.imread('../Datasets/Siris_Dataset/ASSR/gt/test/' + str(imgID) +'.png'))
+        original_masks = color.rgb2gray(plt.imread(pathToASSR + 'gt/test/' + str(imgID) +'.png'))
         unique_values = np.unique(original_masks)
 
         for i in range(1, len(unique_values)):
@@ -163,5 +163,7 @@ print("final SOR Score: ", np.mean(sor_scores))
 print("final MAE Score: ", np.mean(mae_scores))
 
 #save Evaluation results to file
-with open("Eval_results_ASSR_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Resources/Results/" + str(Dataset) + "/Eval_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump({"SASOR": sasor_scores, "MAE": mae_scores, "SOR": sor_scores, "MAE": mae_scores, "combined_SASOR": mean_sasor,"combined_SOR": mean_sor, "combined_MAE": mean_mae}, file)
+
+print("Results succesfully saved in Resources/Results/" + str(Dataset) + "/ as Eval_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) + "_fixations.json")
