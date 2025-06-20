@@ -13,6 +13,9 @@ imagePaths = glob.glob("example/path/to/Dataset/*.jpg")    # list of strings to 
 amountOfPaths = 1                                           # Amount of fixation paths generated per image
 amountOfFixations = 6                                       # Amount of fixations generated per fixationpath
 
+# DeepGaze Model initialization
+device = 'cuda' # use GPU
+deepGaze_model = deepgaze_pytorch.DeepGazeIII(pretrained=True).to(device)
 
 def get_fixation_history(fixation_coordinates, model):
     history = []
@@ -23,31 +26,21 @@ def get_fixation_history(fixation_coordinates, model):
             history.append(np.nan)
     return history
 
-
-device = 'cuda' # use GPU
-
-## DeepGaze III initialization
-deepGaze_model = deepgaze_pytorch.DeepGazeIII(pretrained=True).to(device)
-
-
-# Generate Centerbias
-img_shape = plt.imread(imagePaths[0]).shape
-x, y = np.meshgrid(np.linspace(-1, 1, img_shape[1]), np.linspace(-1, 1, img_shape[0]))
-centerbias = np.exp(-((np.sqrt(x*x + y*y) - 0.0)**2 / (1.0 * 1.0**2)))
-centerbias_tensor = torch.tensor(np.array([centerbias])).to(device)
-
-
 deepGaze_results = []
-
 for imagePath in tqdm(imagePaths):
+    image = plt.imread(imagePath) # Load image
 
-    image = plt.imread(imagePath)
+    # Generate Centerbias
+    x, y = np.meshgrid(np.linspace(-1, 1, image.shape[1]), np.linspace(-1, 1, image.shape[0]))
+    centerbias = np.exp(-((np.sqrt(x*x + y*y) - 0.0)**2 / (1.0 * 1.0**2)))
+    centerbias_tensor = torch.tensor(np.array([centerbias])).to(device)
+    
     image_tensor = torch.tensor([image.transpose(2, 0, 1)]).to(device)
     rst = np.random.RandomState(seed=23)
-    fixationPaths = []
 
+    fixationPaths = []
     for i in range(amountOfPaths): 
-        fixations_x, fixations_y = [img_shape[1]/2], [img_shape[0]/2]
+        fixations_x, fixations_y = [image.shape[1]/2], [image.shape[0]/2]
 
         for j in range(amountOfFixations):
             x_hist = get_fixation_history(fixations_x, deepGaze_model)

@@ -7,19 +7,17 @@ import numpy as np
 from tqdm import tqdm
 from SASOR import evalu
 from pycocotools import mask as maskUtils
-import matplotlib.pyplot as plt
 from SOR import sor as sor_eval
 
 
-
 amountOfChunks = 32  # WARNING! Since for each image the masks are loaded into memory, evaluation uses a lot of memory. Therefore, the evaluation process can be split into chunks to reduce memory usage.
-amountOfPaths = 5 # Amount of fixation paths generated per image
-amountOfFixations = 4 # Amount of fixations generated per fixationpath
+amountOfPaths = 3 # Amount of fixation paths generated per image
+amountOfFixations = 10 # Amount of fixations generated per fixationpath
 
-groundTruths = json.load(open("MSCO.json"))                           
-results = json.load(open("SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
+groundTruths = json.load(open("Datasets/MSCO.json"))
+results = json.load(open("Datasets/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
 
-image_paths = glob.glob("example/path/to/Dataset/*.jpg")    # list of strings to each image in the dataset (use glob), all images need to be the same size
+image_paths = glob.glob("Datasets/MSCOImages/*.jpg")    # list of strings to each image in the dataset (use glob), all images need to be the same size
 
 def SASOR(input_data, iou_threshold=.5, name="test"):
     return evalu(input_data, iou_threshold, name)
@@ -65,15 +63,16 @@ def MAE(input_data):
     def AE(img_data):
         gt_masks = img_data['gt_masks']
         segmaps = img_data['segmaps']
-        combined_gt_mask = np.zeros((1050, 1680), dtype=np.bool)                       # h x w
-        combined_segmap = np.zeros((1050, 1680), dtype=np.bool)
+        hight, width = gt_masks[0].shape
+        combined_gt_mask = np.zeros((hight, width), dtype=np.bool)
+        combined_segmap = np.zeros((hight, width), dtype=np.bool)
         for mask in gt_masks:
             np.logical_or(mask, combined_gt_mask, out=combined_gt_mask)
 
         for i in range(len(segmaps)):
             np.logical_or(segmaps[i], combined_segmap, out=combined_segmap)
 
-        result = np.sum(np.logical_xor(combined_gt_mask, combined_segmap))
+        result = np.sum(np.logical_xor(combined_gt_mask, combined_segmap)) / (hight * width)
         return result
         
 
@@ -81,7 +80,7 @@ def MAE(input_data):
     for img_data in tqdm(input_data):
         average_errors.append(AE(img_data))
 
-    return (np.sum(average_errors) / (1680*1050)) / len(input_data)
+    return (np.sum(average_errors)) / len(input_data)
 
 
 sasor_scores = []
@@ -110,17 +109,17 @@ for z, path_chunk in tqdm(enumerate(path_chunks)):
                 for ann in gt['annotations']:
                     if type(ann['segmentation']) == list:
                         # polygon
-                        binMask = np.zeros((gt['img_height'], gt['img_width']))                                # is this correct (numpy flipped axis)?
+                        binMask = np.zeros((gt['img_height'], gt['img_width']))
                         for seg in ann['segmentation']:
                             rle = maskUtils.decode(maskUtils.frPyObjects([seg], gt['img_height'], gt['img_width']))
                             binMask = binMask + rle[:,:,0]
-                        gt_masks.append(cv2.resize(binMask, (1680, 1050)))
+                        gt_masks.append(binMask.squeeze())
                     else:
                         if type(ann['segmentation']['counts']) == list:
                             rle = maskUtils.frPyObjects([ann['segmentation']], gt['img_height'], gt['img_width'])
                         else:
                             rle = [ann['segmentation']]
-                        gt_masks.append(cv2.resize(maskUtils.decode(rle), (1680, 1050)))
+                        gt_masks.append(maskUtils.decode(rle).squeeze())
 
         # gt_ranks
         for gt in groundTruths:

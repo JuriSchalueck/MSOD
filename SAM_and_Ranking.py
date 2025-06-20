@@ -99,11 +99,11 @@ for imagePath in tqdm(imagePaths):
                 if combined_length != combinedLength(masks_list): break
                 for j, mask2 in enumerate(masks):
                     if i == j: continue
-                    if np.sum(mask1) < 500:                 # filter out to small masks
+                    if np.sum(mask1) < (image.shape[0]*image.shape[1]) * 0.001:
                         masks_list[x].pop(i)
                         scores_list[x].pop(i)
                         break
-                    if np.sum(mask2) < 500:
+                    if np.sum(mask2) < (image.shape[0]*image.shape[1]) * 0.001:
                         masks_list[x].pop(j)
                         scores_list[x].pop(j)
                         break
@@ -151,7 +151,7 @@ for imagePath in tqdm(imagePaths):
                             index = np.argmax(np.sum(mask, axis=(1, 2)))
                             mask = mask[index]
                             score = score[index] 
-                            masks_list[masks_list_length].append(mask)                          # TODO: this has to be fixed
+                            masks_list[masks_list_length].append(mask)
                             scores_list[masks_list_length].append(score)
                             associated_fixations_list[masks_list_length].append(point_coords)
                             masks_list[x].pop(i)
