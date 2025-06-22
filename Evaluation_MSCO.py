@@ -18,7 +18,7 @@ amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
 groundTruths = json.load(open(toml_data['Paths']['pathToMSCO']))
 image_paths = glob.glob(toml_data['Paths']['pathToImages'])
-results = json.load(open("Resources/SAM/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
+results = json.load(open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
 imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
 def SASOR(input_data, iou_threshold=.5, name="test"):

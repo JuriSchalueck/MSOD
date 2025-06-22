@@ -61,9 +61,6 @@ for pth in reducedImagePaths:
     if ann_ids != [] and viewPths != []:
         reducedImagePaths2.append(pth)
 
-with open("reducedPaths.json", "w") as file:
-    json.dump(reducedImagePaths2, file)
-
 # iterate over remaining (4317) images
 reducedImagePaths3 = []
 for pth in tqdm.tqdm(reducedImagePaths2):
@@ -161,7 +158,7 @@ with open("Resources/MSCO.json", "w") as file:
 
 Path("Resources/MSCOImages").mkdir(parents=True, exist_ok=True)
 for pth in tqdm.tqdm(reducedImagePaths3):
-    img = plt.imread(glob.glob("Resources/MSCOCOOriginalImages/*/" + pth.split("/")[-1])[0])
+    img = plt.imread("Resources/train2017/" + pth.split("/")[-1])
 
     # if image is single channel (grayscale image) change it to rbg. if not roblem with creating tensors later with DeepGaze and SAM
     if len(img.shape) == 2:

@@ -19,10 +19,10 @@ Dataset = toml_data['Dataset']
 amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']
 pathToASSR = toml_data['Paths']['pathToASSR']
-paths = json.load(open(pathToASSR + "rank_order/test/COCO_val2014_*.json"))
+paths = glob.glob(pathToASSR + "rank_order/test/*.json")
 imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
-results = json.load(open("resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))
+results = json.load(open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))
 
 
 def SASOR(input_data, iou_threshold=.5, name="test"):

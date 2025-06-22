@@ -19,7 +19,7 @@ amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']  
 max_amount_of_masks = toml_data['SAM']['maxAmountOfMasks']
 
-deepGaze_results = json.load(open("Resources/DeepGaze/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
+deepGaze_results = json.load(open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
 
 device = 'cuda' # use GPU
 sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
