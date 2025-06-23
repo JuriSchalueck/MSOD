@@ -21,6 +21,7 @@ image_paths = glob.glob(toml_data['Paths']['pathToImages'])
 results = json.load(open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json")) 
 imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
+
 def SASOR(input_data, iou_threshold=.5, name="test"):
     return evalu(input_data, iou_threshold, name)
 
@@ -133,7 +134,6 @@ for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
                         continue
                     gt_ranks.append(int(rank * 100))                                           
 
-
         # segmaps / rank_scores
         for result in results:
             if result['file_name'] == imgName:
@@ -151,7 +151,6 @@ for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
 
         input_data.append(img_data)
 
-
     print("Calculating SA_SOR Score:")
     sasor_result = SASOR(input_data)
     sasor_scores.append(sasor_result)
@@ -165,14 +164,22 @@ for z, path_chunk in tqdm.tqdm(enumerate(path_chunks)):
     mae_scores.append(mae_result)
     print("MAE Score: ", mae_result)
 
+# Not every chunk has the exact same size so we have to weigh the mean values
+multiplied_mean_sasor = []
+multiplied_mean_sor = []
+multiplied_mean_mae = []
+for i, pathchunk in enumerate(path_chunks):
+    multiplied_mean_sasor.append(sasor_scores[i] * len(pathchunk))
+    multiplied_mean_sor.append(sor_scores[i] * len(pathchunk))
+    multiplied_mean_mae.append(mae_scores[i] * len(pathchunk))
 
-mean_sasor = np.mean(sasor_scores)
-mean_sor = np.mean(sor_scores)
-mean_mae = np.mean(mae_scores)
+mean_sasor = np.sum(multiplied_mean_sasor) / len(image_paths)
+mean_sor = np.sum(multiplied_mean_sor) / len(image_paths)
+mean_mae = np.sum(multiplied_mean_mae) / len(image_paths)
 
-print("final SASOR Score: ", np.mean(sasor_scores))
-print("final SOR Score: ", np.mean(sor_scores))
-print("final MAE Score: ", np.mean(mae_scores))
+print("final SASOR Score: ", mean_sasor)
+print("final SOR Score: ", mean_sor)
+print("final MAE Score: ", mean_mae)
 
 #save Evaluation results to file
 Path("Resources/Results/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
