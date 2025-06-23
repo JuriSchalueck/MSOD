@@ -27,7 +27,6 @@ if ! [ -f "$pthToVal2017" ]; then
 fi
 unzip val2017.zip
 cp val2017/* train2017
-rm -r train2017.zip val2017.zip val2017
 
 if ! [ -f "$pthToAnnotations" ]; then
     wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
@@ -50,4 +49,4 @@ if ! [ -f "$pthToFixations" ]; then
     wget http://vision.cs.stonybrook.edu/~cvlab_download/COCOFreeView_fixations_trainval.json
 fi
 
-rm -r *.zip COCOSearch18-images-TA COCOSearch18-images-TP val2017
+rm -r *.zip coco_search18_images_TA val2017 __MACOSX
