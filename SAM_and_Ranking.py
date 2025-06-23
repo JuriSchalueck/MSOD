@@ -7,7 +7,8 @@ from tqdm import tqdm
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pycocotools.mask as maskUtils
-from segment_anything import sam_model_registry, SamPredictor
+from sam2.build_sam import build_sam2
+from sam2.sam2_image_predictor import SAM2ImagePredictor
 
 #Load config
 with open("config.toml", "rb") as file:
@@ -21,10 +22,11 @@ max_amount_of_masks = toml_data['SAM']['maxAmountOfMasks']
 
 deepGaze_results = json.load(open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
 
-device = 'cuda' # use GPU
-sam = sam_model_registry["vit_h"](checkpoint="sam_vit_h_4b8939.pth")
-sam.to(device=device)
-predictor = SamPredictor(sam)
+sam2_checkpoint = "sam2.1_hiera_large.pt"
+model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
+
+sam2_model = build_sam2(model_cfg, sam2_checkpoint, device='cuda')
+predictor = SAM2ImagePredictor(sam2_model)
 
 
 def IoU(mask1, mask2):
@@ -195,8 +197,8 @@ for imagePath in tqdm(imagePaths):
 
     encoded_masks = []
     for mask in masks:
-        encoded_masks.append(maskUtils.encode(np.asfortranarray(mask)))
-    
+        encoded_masks.append(maskUtils.encode(np.asfortranarray((mask > 0).astype(np.uint8))))
+
     fully_encoded_masks = []
     for mask in encoded_masks:
         mask['counts'] = base64.b64encode(mask['counts']).decode("utf-8")
