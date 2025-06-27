@@ -1,9 +1,7 @@
 # Multiple Salient Object Detection with DeepGaze III and SAM
-
 This repository contains the UPDATED code to my Bachelor's Thesis project where I presented MSOD. MSOD combines the DeepGaze III model with the foundational SAM model to predict objects and their relative salience in an image.
 
 ## Contents
-
 The repository contains multiple files:
 - README.md
 - requirements.txt with the python libraries we used to help you set up
@@ -18,7 +16,6 @@ The repository contains multiple files:
 - .gitignore file
 
 ## Getting started
-
 Here we will guide you through setting up a virtual environment to run our scripts and download the SAM model.
 
 ### Setting up the virtual environment
@@ -42,15 +39,12 @@ pip install -r requirements.txt
 ```
 
 ### Download the ViT-H SAM model
-
 Go to https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints and download the ViT-H SAM model to the MSOD folder
 
 ## Choose a Dataset
-
 You can either use one of the two Datasets we have already evaluated on or use your own dataset.
 
 ### MSCO
-
 Unfortunately we cannot provide a download to our MSCO Dataset due to complicated licensing of the COCO images. If you want to use our MSCO (Multiple Salient COCO Objects) Dataset you can recreate it yourself. You can either run the MSCOSetup.sh script or do the following steps manually:
 
 - Download the MSCOCO 2017 train and validation images and annotations https://cocodataset.org/#download
@@ -83,9 +77,10 @@ rm -r train2017 annotations_trainval2017 images COCOFreeView_fixations_trainval.
 The config file is set up to run with the MSCO Dataset by default, it might still be useful to review it and change some values to your liking.
 
 ### ASSR
-
 Download the ASSR Dataset from https://github.com/SirisAvishek/Attention_Shift_Ranks/tree/master/Attention_Shift_Saliency_Rank and place it into the Resources folder and then unzip it. In the config file set the pathToImages value to the testing images from ASSR (we do not train our model and to have a fair comparison to others that evaluate using the ASSR dataset we only use the test images), and change the maxAmountOfMasks to 5.
 
 ### Your own
-
 You can use your own datasets Simply change the name of the dataset and path to the images in the config file, if you want to set an upper limit for the number of masks you want to generate and you're ready to go.
+
+## Running MSOD
+After setting up the config file you can now begin by running the DeepGaze.py script it generates the view paths and saves them. Then you can run SAM_and_Ranking.py script. It uses the view paths from DeepGaze.py generates the masks, ranks them and optionally removes masks untill the requested amount is reached. If you are using either MSCO or ASSR you can use our evaluation scripts, otherwise you will have to build you own.
