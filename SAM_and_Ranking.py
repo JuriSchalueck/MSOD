@@ -20,7 +20,7 @@ amountOfPaths = toml_data['DeepGaze']['amountOfViewPaths']
 amountOfFixations = toml_data['DeepGaze']['amountOfFixations']  
 max_amount_of_masks = toml_data['SAM']['maxAmountOfMasks']
 
-deepGaze_results = json.load(open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
+deepGaze_results = json.load(open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(Dataset) + "_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))   # Load DeepGaze fixations
 
 sam2_checkpoint = "sam2.1_hiera_large.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
@@ -210,7 +210,7 @@ for imagePath in tqdm(imagePaths):
      
 # Save dict to file
 Path("Resources/SAM/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
-with open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
+with open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(Dataset) + "_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json", "w") as file:
     json.dump(results, file)
 
-print("Success, results saved as SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json in Resources/SAM/" + str(Dataset) + "/")
+print("Success, results saved as SAM_results_" + str(Dataset) + "_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json in Resources/SAM/" + str(Dataset) + "/")

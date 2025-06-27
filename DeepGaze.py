@@ -68,7 +68,7 @@ for imagePath in tqdm(imagePaths):
 
 # Save to file
 Path("Resources/DeepGaze/" + str(Dataset)).mkdir(parents=True, exist_ok=True)
-with open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
+with open("Resources/DeepGaze/" + str(Dataset) + "/DeepGaze_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json", "w") as file:
     json.dump(deepGaze_results, file)
 
-print("Success, DeepGaze results saved as DeepGaze_results_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json in Resources/DeepGaze/" + str(Dataset) + "/")
+print("Success, DeepGaze results saved as DeepGaze_results_" + str(Dataset) + "_" + str(amountOfPaths) +"_paths_" + str(amountOfFixations) +"_fixations.json in Resources/DeepGaze/" + str(Dataset) + "/")

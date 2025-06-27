@@ -22,7 +22,7 @@ pathToASSR = toml_data['Paths']['pathToASSR']
 paths = glob.glob(pathToASSR + "rank_order/test/*.json")
 imagesPerChunk = toml_data['Evaluation']['imagesPerChunk']
 
-results = json.load(open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))
+results = json.load(open("Resources/SAM/" + str(Dataset) + "/SAM_results_" + str(Dataset) + "_" + str(amountOfPaths) + "_paths_" + str(amountOfFixations) + "_fixations.json"))
 
 
 def SASOR(input_data, iou_threshold=.5, name="test"):
